@@ -17,7 +17,7 @@ public final class HealthBarsHud extends HudModule {
     private float hpShown = 20, hpTrail = 20, foodShown = 20;
     private long last = System.nanoTime();
 
-    public HealthBarsHud() { super("HealthBars", "Стеклянные полоски ХП/брони/голода", 0.5f - 60f / 854f, 0.78f); }
+    public HealthBarsHud() { super("HealthBars", "Стеклянные полоски ХП/брони/голода", 0.005f, 0.66f); }
 
     private int rows() { return 1 + (armor.get() ? 1 : 0) + (hunger.get() ? 1 : 0); }
     @Override public float width() { return W + 6; }

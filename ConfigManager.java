@@ -18,6 +18,8 @@ public final class ConfigManager {
     private final ModuleManager modules;
     private final Path dir = FabricLoader.getInstance().getConfigDir().resolve("nova");
     private String profile = "default";
+    /** 4 = интерфейс v0.4 (Pulse). При переходе со старого конфига убираем панели, перекрывавшие руки. */
+    private static final int UI_VERSION = 4;
 
     public ConfigManager(ModuleManager modules) { this.modules = modules; }
 
@@ -26,6 +28,7 @@ public final class ConfigManager {
     public void save() {
         JsonObject root = new JsonObject();
         root.addProperty("version", 1);
+        root.addProperty("ui", UI_VERSION);
         JsonObject mods = new JsonObject();
         for (Module m : modules.all()) {
             JsonObject o = new JsonObject();
@@ -71,6 +74,8 @@ public final class ConfigManager {
                 if (s != null) for (Setting<?> st : m.settings()) if (s.has(st.name())) st.fromJson(s.get(st.name()));
                 if (o.has("enabled")) m.setEnabled(o.get("enabled").getAsBoolean());
             }
+            int ui = root.has("ui") ? root.get("ui").getAsInt() : 0;
+            if (ui < UI_VERSION) migrateUi();
         } catch (Exception e) {
             NovaClient.LOG.error("Config broken, backing up and resetting", e);
             try { Files.move(f, dir.resolve(profile + ".broken.json"), StandardCopyOption.REPLACE_EXISTING); } catch (IOException ignored) {}
@@ -80,8 +85,21 @@ public final class ConfigManager {
 
     /** Первый запуск: включаем базовый набор, чтобы мод сразу выглядел живым. */
     private void applyDefaults() {
-        for (String n : new String[]{"Watermark", "ModuleList", "FPS", "Coords", "ArmorHUD"})
+        for (String n : new String[]{"Interface", "Watermark", "ModuleList", "Coords", "Hotkeys", "Potions", "TargetHUD", "Hotbar"})
             modules.byName(n).ifPresent(m -> m.setEnabled(true));
+    }
+
+    /** Переход на интерфейс v0.4: выключаем старые нижние панели и возвращаем позиции по умолчанию. */
+    private void migrateUi() {
+        for (String n : new String[]{"ArmorHUD", "HealthBars", "HeldItem", "InventoryHUD"})
+            modules.byName(n).ifPresent(m -> {
+                m.setEnabled(false);
+                if (m instanceof HudModule h) h.resetPos();
+            });
+        for (String n : new String[]{"Interface", "Hotkeys", "Hotbar"})
+            modules.byName(n).ifPresent(m -> m.setEnabled(true));
+        for (Module m : modules.all()) if (m instanceof HudModule h && (h.y > 0.7f && h.x > 0.3f && h.x < 0.65f)) h.resetPos();
+        save();
     }
 
     public String profile() { return profile; }

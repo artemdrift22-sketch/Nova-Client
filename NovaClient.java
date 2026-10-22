@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 public final class NovaClient implements ClientModInitializer {
     public static final String ID = "nova";
     public static final String NAME = "Nova";
-    public static final String VERSION = "0.3.0";
+    public static final String VERSION = "0.4.0";
     public static final Logger LOG = LoggerFactory.getLogger(NAME);
 
     private static ModuleManager modules;

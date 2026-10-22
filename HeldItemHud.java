@@ -9,7 +9,7 @@ import net.minecraft.item.Items;
 
 /** Предмет в руке: иконка, название, прочность, кол-во таких же в инвентаре. */
 public final class HeldItemHud extends HudModule {
-    public HeldItemHud() { super("HeldItem", "Предмет в руке и его прочность", 0.55f, 0.72f); }
+    public HeldItemHud() { super("HeldItem", "Предмет в руке и его прочность", 0.82f, 0.7f); }
 
     private ItemStack stack(boolean preview) {
         ItemStack st = mc.player == null ? ItemStack.EMPTY : mc.player.getMainHandStack();

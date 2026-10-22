@@ -12,7 +12,8 @@
     "InGameOverlayRendererMixin",
     "EntityRendererMixin",
     "ClientWorldPropertiesMixin",
-    "ChatHudMixin"
+    "ChatHudMixin",
+    "HotbarAlphaMixin"
   ],
   "injectors": { "defaultRequire": 0 }
 }

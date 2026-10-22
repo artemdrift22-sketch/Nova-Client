@@ -36,11 +36,12 @@ public final class Render {
         for (int i = 0; i < w; i++) c.fill(x + i, y, x + i + 1, y + h, lerpColor(left, right, i / (float) Math.max(1, w - 1)));
     }
 
+    /** Весь текст мода идёт через NovaFont: свой шрифт, дробные координаты, fade. */
     public static int text(DrawContext c, String s, float x, float y, int color, boolean shadow) {
-        return c.drawText(font(), s, Math.round(x), Math.round(y), color, shadow);
+        return NovaFont.draw(c, s, x, y, color, shadow);
     }
 
-    public static int width(String s) { return font().getWidth(s); }
+    public static int width(String s) { return NovaFont.width(s); }
     public static int height() { return font().fontHeight; }
 
     public static int alpha(int color, float a) {

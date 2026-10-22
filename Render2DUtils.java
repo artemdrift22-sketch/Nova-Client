@@ -26,6 +26,9 @@ import org.joml.Matrix4f;
 public final class Render2DUtils {
     private Render2DUtils() {}
 
+    /** Общая прозрачность 0..1 для fade-анимаций (меню, HUD). Всегда возвращать в 1 после себя! */
+    public static float alpha = 1f;
+
     // ===================== низкий уровень =====================
 
     private static BufferBuilder begin(DrawContext ctx) {
@@ -47,6 +50,7 @@ public final class Render2DUtils {
     private static Matrix4f mat(DrawContext ctx) { return ctx.getMatrices().peek().getPositionMatrix(); }
 
     private static void v(BufferBuilder bb, Matrix4f m, float x, float y, int color) {
+        if (alpha < 1f) color = ThemeManager.fade(color, alpha);
         bb.vertex(m, x, y, 0f).color(color);
     }
 
@@ -96,6 +100,19 @@ public final class Render2DUtils {
         }
     }
 
+    /** Веер с горизонтальным градиентом (цвет по X). */
+    private static void fanH(BufferBuilder bb, Matrix4f m, float[] p, float cx, float cy, float x, float w, int left, int right) {
+        int n = p.length / 2;
+        int cc = ThemeManager.lerp(left, right, (cx - x) / w);
+        for (int i = 0; i < n; i++) {
+            int j = (i + 1) % n;
+            float x1 = p[i * 2], y1 = p[i * 2 + 1], x2 = p[j * 2], y2 = p[j * 2 + 1];
+            v(bb, m, cx, cy, cc);
+            v(bb, m, x1, y1, ThemeManager.lerp(left, right, (x1 - x) / w));
+            v(bb, m, x2, y2, ThemeManager.lerp(left, right, (x2 - x) / w));
+        }
+    }
+
     private static void ring(BufferBuilder bb, Matrix4f m, float[] outer, float[] inner, int colOuter, int colInner) {
         int n = outer.length / 2;
         for (int i = 0; i < n; i++) {
@@ -123,6 +140,33 @@ public final class Render2DUtils {
         BufferBuilder bb = begin(ctx);
         fan(bb, mat(ctx), p, x + w / 2f, y + h / 2f, y, h, top, bottom);
         end(bb);
+    }
+
+    /** Скруглённый прямоугольник с горизонтальным градиентом (полоски ХП, слайдеры). */
+    public static void drawRoundedGradientH(DrawContext ctx, float x, float y, float w, float h, float radius, int left, int right) {
+        if (w <= 0 || h <= 0) return;
+        float r = clampR(radius, w, h);
+        float[] p = contour(x, y, w, h, r, 0f, segments(r));
+        BufferBuilder bb = begin(ctx);
+        fanH(bb, mat(ctx), p, x + w / 2f, y + h / 2f, x, w, left, right);
+        end(bb);
+    }
+
+    /** Горизонтальный градиент без скругления. */
+    public static void drawGradientH(DrawContext ctx, float x, float y, float w, float h, int left, int right) {
+        if (w <= 0 || h <= 0) return;
+        Matrix4f m = mat(ctx);
+        BufferBuilder bb = begin(ctx);
+        v(bb, m, x, y, left); v(bb, m, x, y + h, left); v(bb, m, x + w, y + h, right);
+        v(bb, m, x, y, left); v(bb, m, x + w, y + h, right); v(bb, m, x + w, y, right);
+        end(bb);
+    }
+
+    /** Полоса оттенков (Hue) для пипетки: 6 градиентных сегментов. */
+    public static void drawHueBar(DrawContext ctx, float x, float y, float w, float h) {
+        float sw = w / 6f;
+        for (int i = 0; i < 6; i++)
+            drawGradientH(ctx, x + sw * i, y, sw + 0.01f, h, ThemeManager.hsv(i / 6f, 1, 1, 255), ThemeManager.hsv((i + 1) / 6f, 1, 1, 255));
     }
 
     /** Вертикальный градиент (прямоугольник = 2 треугольника). */
@@ -165,8 +209,11 @@ public final class Render2DUtils {
     }
 
     public static void drawShadow(DrawContext ctx, float x, float y, float w, float h, float radius, float blurRadius) {
-        // тень чуть смещена вниз — свет сверху
-        drawGlow(ctx, x, y + blurRadius * 0.25f, w, h, radius, blurRadius, ThemeManager.SHADOW);
+        // Два слоя: широкий слабый + узкий плотный. Смещение вниз — свет сверху.
+        // Сумма двух линейных спадов даёт мягкий «гауссовский» край.
+        int base = ThemeManager.SHADOW;
+        drawGlow(ctx, x, y + blurRadius * 0.35f, w, h, radius, blurRadius, ThemeManager.fade(base, 0.55f));
+        drawGlow(ctx, x, y + blurRadius * 0.2f, w, h, radius, blurRadius * 0.45f, ThemeManager.fade(base, 0.6f));
     }
 
     /** Стеклянная панель меню (radius 12). */
@@ -187,6 +234,15 @@ public final class Render2DUtils {
         float hl = Math.min(h * 0.45f, 18f);
         drawRoundedGradient(ctx, x + 1, y + 1, w - 2, hl, Math.max(0f, radius - 1), ThemeManager.rgba(255, 255, 255, 18), ThemeManager.rgba(255, 255, 255, 0));
         drawRoundedOutline(ctx, x, y, w, h, radius, ThemeManager.STROKE_WIDTH, ThemeManager.STROKE);
+        // вторая внутренняя кромка — толщина стекла
+        if (w > 6 && h > 6) drawRoundedOutline(ctx, x + 1, y + 1, w - 2, h - 2, Math.max(0f, radius - 1), 1f, ThemeManager.rgba(255, 255, 255, 8));
+    }
+
+    /** Тёмная HUD-плашка в стиле Pulse: тень + фон RGBA(10,10,15,150) + тонкий белый контур. */
+    public static void drawHudPanel(DrawContext ctx, float x, float y, float w, float h, float radius, boolean stroke) {
+        drawShadow(ctx, x, y, w, h, radius, 8f);
+        drawRoundedGradient(ctx, x, y, w, h, radius, ThemeManager.lerp(ThemeManager.HUD_BG, ThemeManager.withAlpha(0xFFFFFF, (ThemeManager.HUD_BG >>> 24) & 255), 0.04f), ThemeManager.HUD_BG);
+        if (stroke) drawRoundedOutline(ctx, x, y, w, h, radius, 1f, ThemeManager.HUD_STROKE);
     }
 
     /** Круг (для ручек тумблеров). */
@@ -199,13 +255,22 @@ public final class Render2DUtils {
      * Выкл — серый, вкл — светится золотым.
      */
     public static void drawToggle(DrawContext ctx, float x, float y, float w, float h, float t) {
-        int track = ThemeManager.lerp(ThemeManager.TOGGLE_OFF, ThemeManager.withAlpha(ThemeManager.GOLD, 120), t);
-        if (t > 0.01f) drawGlow(ctx, x, y, w, h, h / 2f, 4f, ThemeManager.withAlpha(ThemeManager.GOLD, (int) (90 * t)));
-        drawRoundedRect(ctx, x, y, w, h, h / 2f, track);
-        float r = h / 2f - 1.5f;
-        float kx = x + h / 2f + (w - h) * t;
-        int knob = ThemeManager.lerp(ThemeManager.KNOB_OFF, ThemeManager.GOLD, t);
-        drawCircle(ctx, kx, y + h / 2f, r, knob);
+        float r = h / 2f;
+        // Bloom: несколько концентрических колец свечения с убывающей плотностью
+        if (t > 0.01f) {
+            drawGlow(ctx, x, y, w, h, r, h * 0.95f, ThemeManager.withAlpha(ThemeManager.GOLD, (int) (26 * t)));
+            drawGlow(ctx, x, y, w, h, r, h * 0.55f, ThemeManager.withAlpha(ThemeManager.GOLD, (int) (48 * t)));
+            drawGlow(ctx, x, y, w, h, r, h * 0.25f, ThemeManager.withAlpha(ThemeManager.GOLD_LIGHT, (int) (90 * t)));
+        }
+        int offTop = ThemeManager.lerp(ThemeManager.TOGGLE_OFF, 0xFFFFFFFF, 0.04f);
+        drawRoundedGradient(ctx, x, y, w, h, r,
+            ThemeManager.lerp(offTop, ThemeManager.GOLD_LIGHT, t),
+            ThemeManager.lerp(ThemeManager.TOGGLE_OFF, ThemeManager.GOLD_DEEP, t));
+        drawRoundedOutline(ctx, x, y, w, h, r, 1f, ThemeManager.lerp(ThemeManager.rgba(255, 255, 255, 20), ThemeManager.rgba(255, 255, 255, 90), t));
+        float kr = r - 2f;
+        float kx = x + r + (w - h) * t, ky = y + r;
+        drawCircle(ctx, kx, ky + 0.6f, kr + 0.7f, ThemeManager.rgba(0, 0, 0, 70)); // тень ручки
+        drawCircle(ctx, kx, ky, kr, ThemeManager.lerp(ThemeManager.KNOB_OFF, ThemeManager.TEXT, t));
     }
 
     /** Звезда Nova белого цвета. (x, y) — левый верхний угол квадрата size x size. */

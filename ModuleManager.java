@@ -5,6 +5,7 @@ import dev.nova.modules.client.ClickGuiModule;
 import dev.nova.modules.client.HudEditorModule;
 import dev.nova.modules.client.PresetsModule;
 import dev.nova.modules.client.ServerModeModule;
+import dev.nova.modules.client.InterfaceModule;
 import dev.nova.modules.pvp.*;
 import dev.nova.modules.qol.*;
 import dev.nova.modules.world.TimeWeatherModule;
@@ -22,6 +23,7 @@ public final class ModuleManager {
 
     public void init() {
         // Клиент
+        register(new InterfaceModule());
         register(new ClickGuiModule());
         register(new HudEditorModule());
         register(new PresetsModule());
@@ -32,6 +34,8 @@ public final class ModuleManager {
         register(new FpsHud());
         register(new PingHud());
         register(new CoordsHud());
+        register(new KeybindsHud());
+        register(new HotbarModule());
         register(new ArmorHud());
         register(new KeystrokesHud());
         register(new CpsHud());
@@ -80,7 +84,10 @@ public final class ModuleManager {
     public void onRender2D(DrawContext ctx, float delta) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.options.hudHidden || mc.player == null) return;
-        for (Module m : modules) if (m.enabled()) m.onRender2D(ctx, delta);
+        dev.nova.render.ThemeManager.apply();
+        for (Module m : modules) if (m.enabled()) {
+            try { m.onRender2D(ctx, delta); } catch (Throwable t) { dev.nova.render.Render2DUtils.alpha = 1f; }
+        }
     }
 
     /** Бинды работают только без открытого экрана (не мешают чату). Edge-detection: срабатывает на нажатие. */

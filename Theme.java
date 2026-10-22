@@ -1,19 +1,21 @@
 package dev.nova.render;
 
-import dev.nova.NovaClient;
-import dev.nova.modules.client.ClickGuiModule;
-
-/** Совместимость со старыми модулями: теперь все цвета берутся из ThemeManager (Nova Glass). */
+/** Совместимость со старыми модулями: значения синхронизируются из ThemeManager.apply(). */
 public final class Theme {
     private Theme() {}
-    public static final int BG = ThemeManager.BG;
-    public static final int PANEL = ThemeManager.BG;
-    public static final int ITEM = ThemeManager.CARD;
-    public static final int ITEM_HOVER = ThemeManager.CARD_HOVER;
+    public static int BG = ThemeManager.BG;
+    public static int PANEL = ThemeManager.BG;
+    public static int ITEM = ThemeManager.CARD;
+    public static int ITEM_HOVER = ThemeManager.CARD_HOVER;
     public static final int TEXT = ThemeManager.TEXT;
     public static final int TEXT_DIM = ThemeManager.TEXT_DIM;
-    public static final int HUD_BG = ThemeManager.rgba(255, 255, 255, 16);
+    public static int HUD_BG = ThemeManager.HUD_BG;
 
-    public static int accent() { return NovaClient.modules().get(ClickGuiModule.class).accent.color(); }
-    public static int accent(long offset) { return NovaClient.modules().get(ClickGuiModule.class).accent.color(offset); }
+    public static int accent() { return ThemeManager.ACCENT; }
+
+    /** Переливание акцента по смещению (для списков): акцент -> светлее -> акцент. */
+    public static int accent(long offset) {
+        double t = (Math.sin((System.currentTimeMillis() + offset * 4) / 600.0) + 1) / 2;
+        return ThemeManager.lerp(ThemeManager.ACCENT, ThemeManager.lerp(ThemeManager.ACCENT, ThemeManager.TEXT, 0.55f), (float) t);
+    }
 }

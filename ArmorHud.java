@@ -16,7 +16,7 @@ public final class ArmorHud extends HudModule {
     private final ModeSetting durability = mode("Прочность", "%", "%", "Число", "Скрыть");
     private final BoolSetting hands = bool("Предметы в руках", true);
 
-    public ArmorHud() { super("ArmorHUD", "Броня и прочность", 0.55f, 0.82f); }
+    public ArmorHud() { super("ArmorHUD", "Броня и прочность", 0.005f, 0.55f); }
 
     private int count() { return hands.get() ? 6 : 4; }
     private boolean vertical() { return layout.is("Вертик."); }

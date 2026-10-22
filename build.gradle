@@ -31,6 +31,8 @@ if (flatLayout) {
     def flatResources = tasks.register('flatResources', Sync) {
         from('.') { include 'fabric.mod.json', 'nova.mixins.json' }
         from('.') { include 'en_us.json', 'ru_ru.json'; into 'assets/nova/lang' }
+        from('.') { include 'nova_font.ttf'; into 'assets/nova/font' }
+        from('.') { include 'nova_font.json'; into 'assets/nova/font'; rename { 'main.json' } }
         into flatRes
     }
     sourceSets {
