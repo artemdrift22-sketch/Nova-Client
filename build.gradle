@@ -20,17 +20,25 @@ processResources {
 tasks.withType(JavaCompile).configureEach { it.options.release = 21 }
 java { sourceCompatibility = JavaVersion.VERSION_21; targetCompatibility = JavaVersion.VERSION_21 }
 
-// Поддержка "плоской" загрузки на GitHub: все .java и ресурсы лежат в корне репозитория.
+loom {
+    mixin { defaultRefmapName = 'nova-refmap.json' }
+}
+
+// Все файлы лежат в корне репозитория: собираем из них нормальную структуру
 def flatLayout = !file('src/main/java').exists()
 if (flatLayout) {
+    def flatRes = layout.buildDirectory.dir('flatres').get().asFile
+    def flatResources = tasks.register('flatResources', Sync) {
+        from('.') { include 'fabric.mod.json', 'nova.mixins.json' }
+        from('.') { include 'en_us.json', 'ru_ru.json'; into 'assets/nova/lang' }
+        into flatRes
+    }
     sourceSets {
         main {
             java { srcDirs = ['.']; include '*.java' }
-            resources { srcDirs = [] }
+            resources { srcDirs = [flatRes] }
         }
     }
-    processResources {
-        from('.') { include 'fabric.mod.json', 'nova.mixins.json' }
-        from('.') { include 'en_us.json', 'ru_ru.json'; into 'assets/nova/lang' }
-    }
+    tasks.named('processResources') { dependsOn flatResources }
+    tasks.matching { it.name == 'sourcesJar' }.configureEach { dependsOn flatResources }
 }
