@@ -13,6 +13,8 @@ import net.minecraft.sound.SoundEvents;
 
 /** Счётчики тотемов/геплов/перлов/стрел/опыта + детект «тотем лопнул». */
 public final class CountersHud extends HudModule {
+    @Override protected String header() { return "Counters"; }
+
     private static final Item[] ITEMS = {Items.TOTEM_OF_UNDYING, Items.GOLDEN_APPLE, Items.ENCHANTED_GOLDEN_APPLE, Items.ENDER_PEARL, Items.ARROW, Items.EXPERIENCE_BOTTLE, Items.END_CRYSTAL, Items.OBSIDIAN};
     private final BoolSetting popAlert = bool("Алерт попа тотема", true);
     private final BoolSetting hideZero = bool("Скрывать нули", true);

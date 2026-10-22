@@ -11,7 +11,8 @@
     "GameRendererMixin",
     "InGameOverlayRendererMixin",
     "EntityRendererMixin",
-    "ClientWorldPropertiesMixin"
+    "ClientWorldPropertiesMixin",
+    "ChatHudMixin"
   ],
   "injectors": { "defaultRequire": 0 }
 }

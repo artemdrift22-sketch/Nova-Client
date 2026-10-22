@@ -28,7 +28,7 @@ public final class HudEditorScreen extends Screen {
         if (guideY != null) ctx.fill(0, Math.round(guideY), width, Math.round(guideY) + 1, Theme.accent());
 
         for (HudModule h : elements()) {
-            float x = h.px(), y = h.py(), w = h.width() * h.scale, hh = h.height() * h.scale;
+            float x = h.px(), y = h.py(), w = h.fullWidth() * h.scale, hh = h.fullHeight() * h.scale;
             if (h.enabled()) h.renderAt(ctx, delta, true);
             boolean hover = Render.hovered(mx, my, x, y, w, hh);
             int border = !h.enabled() ? 0x50FFFFFF : hover || h == dragging ? Theme.accent() : 0x90FFFFFF;
@@ -44,7 +44,7 @@ public final class HudEditorScreen extends Screen {
         List<HudModule> list = elements();
         for (int i = list.size() - 1; i >= 0; i--) {
             HudModule h = list.get(i);
-            if (Render.hovered(mx, my, h.px(), h.py(), h.width() * h.scale, h.height() * h.scale)) return h;
+            if (Render.hovered(mx, my, h.px(), h.py(), h.fullWidth() * h.scale, h.fullHeight() * h.scale)) return h;
         }
         return null;
     }
@@ -61,7 +61,7 @@ public final class HudEditorScreen extends Screen {
     @Override
     public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
         if (dragging == null) return super.mouseDragged(mx, my, button, dx, dy);
-        float w = dragging.width() * dragging.scale, h = dragging.height() * dragging.scale;
+        float w = dragging.fullWidth() * dragging.scale, h = dragging.fullHeight() * dragging.scale;
         float nx = (float) mx - offX, ny = (float) my - offY;
         guideX = null; guideY = null;
         // снап к краям экрана и к центру

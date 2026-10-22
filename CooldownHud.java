@@ -12,6 +12,8 @@ import net.minecraft.item.Items;
 
 /** Кулдаун атаки, натяжение лука, кулдауны щита/перла/гепла. */
 public final class CooldownHud extends HudModule {
+    @Override protected String header() { return "Cooldowns"; }
+
     private static final int W = 90;
     private final BoolSetting attack = bool("Атака", true);
     private final BoolSetting bow = bool("Лук", true);

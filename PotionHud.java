@@ -11,6 +11,8 @@ import java.util.List;
 
 /** Активные эффекты: название, уровень, время. Мигает, когда осталось < 10 сек. */
 public final class PotionHud extends HudModule {
+    @Override protected String header() { return "Potions"; }
+
     public PotionHud() { super("Potions", "Активные эффекты", 0.82f, 0.4f); }
 
     private List<String[]> lines(boolean preview) {

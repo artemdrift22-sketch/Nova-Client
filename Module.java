@@ -42,6 +42,7 @@ public abstract class Module {
     protected void onDisable() {}
     public void onTick() {}
     public void onRender2D(DrawContext ctx, float delta) {}
+    public void onRender3D(net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext ctx) {}
 
     protected boolean inGame() { return mc.player != null && mc.world != null; }
 

@@ -51,6 +51,8 @@ public final class ModuleManager {
         register(new CountersHud());
         // Мир
         register(new FullbrightModule());
+        register(new dev.nova.modules.world.HitboxesModule());
+        register(new dev.nova.modules.cosmetic.ChatStarModule());
         register(new TimeWeatherModule());
         // QoL
         register(new ZoomModule());
@@ -67,6 +69,12 @@ public final class ModuleManager {
         handleKeybinds(client);
         dev.nova.util.CombatTracker.tick(client);
         for (Module m : modules) if (m.enabled()) m.onTick();
+    }
+
+    public void onRender3D(net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext ctx) {
+        for (Module m : all()) if (m.enabled()) {
+            try { m.onRender3D(ctx); } catch (Throwable t) { /* не роняем игру */ }
+        }
     }
 
     public void onRender2D(DrawContext ctx, float delta) {

@@ -16,7 +16,7 @@ import org.lwjgl.glfw.GLFW;
  * запасная клавиша Insert и команда /nova в чате.
  */
 public final class ClickGuiModule extends Module {
-    public final ColorSetting accent = color("Акцент", 0xFF8B5CF6);
+    public final ColorSetting accent = color("Акцент Nova", 0xFF00E5FF);
 
     private static final KeyBinding OPEN = KeyBindingHelper.registerKeyBinding(
         new KeyBinding("key.nova.gui", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT, "category.nova"));
