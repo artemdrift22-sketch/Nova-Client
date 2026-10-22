@@ -1,4 +1,6 @@
 {
   "category.nova": "Nova",
-  "key.nova.zoom": "Zoom"
+  "key.nova.zoom": "Zoom",
+  "key.nova.gui": "Open menu",
+  "key.nova.gui_alt": "Open menu (alt)"
 }

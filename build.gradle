@@ -19,3 +19,18 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach { it.options.release = 21 }
 java { sourceCompatibility = JavaVersion.VERSION_21; targetCompatibility = JavaVersion.VERSION_21 }
+
+// Поддержка "плоской" загрузки на GitHub: все .java и ресурсы лежат в корне репозитория.
+def flatLayout = !file('src/main/java').exists()
+if (flatLayout) {
+    sourceSets {
+        main {
+            java { srcDirs = ['.']; include '*.java' }
+            resources { srcDirs = [] }
+        }
+    }
+    processResources {
+        from('.') { include 'fabric.mod.json', 'nova.mixins.json' }
+        from('.') { include 'en_us.json', 'ru_ru.json'; into 'assets/nova/lang' }
+    }
+}

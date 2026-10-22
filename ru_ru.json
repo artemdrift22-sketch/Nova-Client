@@ -1,4 +1,6 @@
 {
   "category.nova": "Nova",
-  "key.nova.zoom": "Приближение"
+  "key.nova.zoom": "Приближение",
+  "key.nova.gui": "Открыть меню",
+  "key.nova.gui_alt": "Открыть меню (запасная)"
 }
